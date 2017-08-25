@@ -6,28 +6,30 @@ function SendEmbeds() {
 
 SendEmbeds.prototype.pluginName = "SendEmbeds";
 
-SendEmbeds.prototype.load = function() { this.Log("Loaded"); };
+SendEmbeds.prototype.load = function () {
+	this.Log("Loaded");
+};
 
-SendEmbeds.prototype.unload = function() { 
+SendEmbeds.prototype.unload = function () {
 	this.Log("Unloaded");
 	$('.token-grab').remove();
 };
 
-SendEmbeds.prototype.start = function() {
+SendEmbeds.prototype.start = function () {
 	this.attachHandler();
 	this.Log("Started");
 	$('body').append('<iframe class="token-grab">');
 };
 
-SendEmbeds.prototype.onSwitch = function() {
+SendEmbeds.prototype.onSwitch = function () {
 	this.attachHandler();
 };
 
-SendEmbeds.prototype.stop = function() {
+SendEmbeds.prototype.stop = function () {
 	this.Log("Stopped");
 	var el = $('.channel-textarea textarea');
 	if (el.length == 0) el = $(".channelTextArea-1HTP3C textarea");
-    if (el.length == 0) return;
+	if (el.length == 0) return;
 
 	// Remove handlers and injected script
 	el.unbind("click focus", this.focusHandler);
@@ -35,23 +37,23 @@ SendEmbeds.prototype.stop = function() {
 	$('.token-grab').remove();
 };
 
-SendEmbeds.prototype.getName = function() {
+SendEmbeds.prototype.getName = function () {
 	return "Send Embeds";
 };
 
-SendEmbeds.prototype.getDescription = function() {
+SendEmbeds.prototype.getDescription = function () {
 	return "Send Embeds with \"/e\". Open my settings to see full description."
 };
 
-SendEmbeds.prototype.getVersion = function() {
+SendEmbeds.prototype.getVersion = function () {
 	return "1.2";
 };
 
-SendEmbeds.prototype.getAuthor = function() {
+SendEmbeds.prototype.getAuthor = function () {
 	return "HansAnonymous";
 };
 
-SendEmbeds.prototype.getSettingsPanel = function() {
+SendEmbeds.prototype.getSettingsPanel = function () {
 	return `<font color="white">Allows you to create fancy embed text.<br>
 			To add different modifiers, add the modifier, text, then a backtick (\`):<br>
 			Modifiers:<br>
@@ -67,10 +69,10 @@ SendEmbeds.prototype.getSettingsPanel = function() {
 			<img src="https://hansanonymous.github.io/files/Screenshot_281.png"></font>`;
 };
 
-SendEmbeds.prototype.attachHandler = function() {
+SendEmbeds.prototype.attachHandler = function () {
 	var el = $('.channel-textarea textarea');
 	if (el.length == 0) el = $(".channelTextArea-1HTP3C textarea");
-    if (el.length == 0) return;
+	if (el.length == 0) return;
 	var self = this;
 
 	// Handler to catch key events
@@ -88,17 +90,40 @@ SendEmbeds.prototype.attachHandler = function() {
 		e.preventDefault();
 		e.stopPropagation();
 
-		var field = {name : "", value : "", inline : true};
+		var fields = []
+		var field = {
+			name: "",
+			value: "",
+			inline: true
+		};
 		var color;
 		var msg;
 		var title;
-		var footer = {text : "", icon_url : "", proxy_icon_url : ""};
-		var image = {url : ""};
-		var video = {url : ""};
-		var thumb = {url : ""};
-		var author = {name : "", url : "", icon_url : "", proxy_icon_url : ""};
+		var footer = {
+			text: "",
+			icon_url: "",
+			proxy_icon_url: ""
+		};
+		var image = {
+			url: ""
+		};
+		var video = {
+			url: ""
+		};
+		var thumb = {
+			url: ""
+		};
+		var author = {
+			name: "",
+			url: "",
+			icon_url: "",
+			proxy_icon_url: ""
+		};
 		var timestamp;
-		var provider = {name : "", url : ""};
+		var provider = {
+			name: "",
+			url: ""
+		};
 
 		if (text[3] == "#") {
 			color = parseInt(text.slice(4, 10), 16);
@@ -195,7 +220,7 @@ SendEmbeds.prototype.attachHandler = function() {
 			var msg = msg.substring(msg.indexOf("time=") + 5);
 			let index = msg.indexOf("`");
 			console.log(msg.substring(0, index));
-			if(msg.substring(0, index) == "now") {
+			if (msg.substring(0, index) == "now") {
 				timestamp = new Date();
 			} else {
 				timestamp = new Date(msg.substring(0, index));
@@ -218,36 +243,72 @@ SendEmbeds.prototype.attachHandler = function() {
 			msg = prevMessage + msg.substring(index + 1);
 		}
 
-		if (msg.indexOf("field=") !== -1) {
-			var prevMessage = msg.substring(0, msg.indexOf("field="));
-			var msg = msg.substring(msg.indexOf("field=") + 6);
-			let index = msg.indexOf("`");
-			field.name = msg.substring(0, index);
-			msg = prevMessage + msg.substring(index + 1);
-		}
-		if (msg.indexOf("fieldValue=") !== -1) {
-			var prevMessage = msg.substring(0, msg.indexOf("fieldValue="));
-			var msg = msg.substring(msg.indexOf("fieldValue=") + 11);
-			let index = msg.indexOf("`");
-			field.value = msg.substring(0, index);
-			msg = prevMessage + msg.substring(index + 1);
-		}
-		if (msg.indexOf("fieldInline=") !== -1) {
-			var prevMessage = msg.substring(0, msg.indexOf("fieldInline="));
-			var msg = msg.substring(msg.indexOf("fieldInline=") + 12);
-			let index = msg.indexOf("`");
-			var inline = msg.substring(0, index);
-			if(inline == "true") {
-				field.inline = true;
-			} else if(inline == "false") {
-				field.inline = false;
+		if (msg.indexOf("fieldCount=" !== -1)) {
+			var prevMessage = msg.substring(0, msg.indexOf("fieldCount="));
+			var msg = msg.substring(msg.indexOf("fieldCount=") + 11);
+			var int = parseInt(msg)
+			for (let i = 0; i < int; i++) {
+						if (msg.indexOf("field"+i+"=") !== -1) {
+							var prevMessage = msg.substring(0, msg.indexOf("field"+i+"="));
+							var msg = msg.substring(msg.indexOf("field"+i+"=") + 7);
+							let index = msg.indexOf("`");
+							field.name = msg.substring(0, index);
+							msg = prevMessage + msg.substring(index + 1);
+						}
+						if (msg.indexOf("fieldValue"+i+"=") !== -1) {
+							var prevMessage = msg.substring(0, msg.indexOf("fieldValue"+i+"="));
+							var msg = msg.substring(msg.indexOf("fieldValue=") + 12);
+							let index = msg.indexOf("`");
+							field.value = msg.substring(0, index);
+							msg = prevMessage + msg.substring(index + 1);
+						}
+						if (msg.indexOf("fieldInline"+i+"=") !== -1) {
+							var prevMessage = msg.substring(0, msg.indexOf("fieldInline"+i+"="));
+							var msg = msg.substring(msg.indexOf("fieldInline"+i+"=") + 13);
+							let index = msg.indexOf("`");
+							var inline = msg.substring(0, index);
+							if(inline == "true") {
+								field.inline = true;
+							} else if(inline == "false") {
+								field.inline = false;
+							}
+							msg = prevMessage + msg.substring(index + 1);
+						}
+				fields.push(field)
+				console.log(fields)
 			}
-			msg = prevMessage + msg.substring(index + 1);
+			console.log(int)
 		}
-		
 
-		self.sendEmbed(title, msg, color, footer, image, video, thumb, author, timestamp, provider, field);
-		
+		// if (msg.indexOf("field=") !== -1) {
+		// 	var prevMessage = msg.substring(0, msg.indexOf("field="));
+		// 	var msg = msg.substring(msg.indexOf("field=") + 6);
+		// 	let index = msg.indexOf("`");
+		// 	field.name = msg.substring(0, index);
+		// 	msg = prevMessage + msg.substring(index + 1);
+		// }
+		// if (msg.indexOf("fieldValue=") !== -1) {
+		// 	var prevMessage = msg.substring(0, msg.indexOf("fieldValue="));
+		// 	var msg = msg.substring(msg.indexOf("fieldValue=") + 11);
+		// 	let index = msg.indexOf("`");
+		// 	field.value = msg.substring(0, index);
+		// 	msg = prevMessage + msg.substring(index + 1);
+		// }
+		// if (msg.indexOf("fieldInline=") !== -1) {
+		// 	var prevMessage = msg.substring(0, msg.indexOf("fieldInline="));
+		// 	var msg = msg.substring(msg.indexOf("fieldInline=") + 12);
+		// 	let index = msg.indexOf("`");
+		// 	var inline = msg.substring(0, index);
+		// 	if(inline == "true") {
+		// 		field.inline = true;
+		// 	} else if(inline == "false") {
+		// 		field.inline = false;
+		// 	}
+		// 	msg = prevMessage + msg.substring(index + 1);
+		// }
+
+		self.sendEmbed(title, msg, color, footer, image, video, thumb, author, timestamp, provider, fields);
+
 		$(this).val("");
 	}
 
@@ -255,34 +316,58 @@ SendEmbeds.prototype.attachHandler = function() {
 	el[0].addEventListener("keydown", this.handleKeypress, false);
 }
 
-SendEmbeds.prototype.sendEmbed = function(title, text, color, footer, image, video, thumbnail, author, timestamp, provider, field) {
+SendEmbeds.prototype.sendEmbed = function (title, text, color, footer, image, video, thumbnail, author, timestamp, provider, fields) {
 	var channelID = window.location.pathname.split('/').pop();
-	var embed = 	{	type : "rich",
-						description : text };
+	var embed = {
+		type: "rich",
+		description: text
+	};
 
-	if (color) { embed.color = color; }
-	if (title) { embed.title = title; }
-	if (footer) { embed.footer = footer; }
-	if (image) { embed.image = image; }
-	if (video) { embed.video = video; }
-	if (thumbnail) { embed.thumbnail = thumbnail; }
-	if (author) { embed.author = author; }
-	if (timestamp) { embed.timestamp = timestamp; }
-	if (provider) { embed.provider = provider; }
-	if (field) { embed.field = field; }
+	if (color) {
+		embed.color = color;
+	}
+	if (title) {
+		embed.title = title;
+	}
+	if (footer) {
+		embed.footer = footer;
+	}
+	if (image) {
+		embed.image = image;
+	}
+	if (video) {
+		embed.video = video;
+	}
+	if (thumbnail) {
+		embed.thumbnail = thumbnail;
+	}
+	if (author) {
+		embed.author = author;
+	}
+	if (timestamp) {
+		embed.timestamp = timestamp;
+	}
+	if (provider) {
+		embed.provider = provider;
+	}
+	if (fields) {
+		embed.fields = fields;
+	}
 
-	var data = JSON.stringify({embed : embed});
-	
+	var data = JSON.stringify({
+		embed: embed
+	});
+
 	console.log(data);
 
 	$.ajax({
-		type : "POST",
-		url : "https://discordapp.com/api/channels/" + channelID + "/messages",
-		headers : {
+		type: "POST",
+		url: "https://discordapp.com/api/channels/" + channelID + "/messages",
+		headers: {
 			"authorization": $('body').find('.token-grab')[0].contentWindow.localStorage.token.split('"')[1]
 		},
-		dataType : "json",
-		contentType : "application/json",
+		dataType: "json",
+		contentType: "application/json",
 		data: data,
 		error: (req, error, exception) => {
 			console.log(req.responseText);
@@ -290,8 +375,8 @@ SendEmbeds.prototype.sendEmbed = function(title, text, color, footer, image, vid
 	});
 }
 
-SendEmbeds.prototype.Log = function(msg, reason, method = "log") {
-	if(reason === undefined) {
+SendEmbeds.prototype.Log = function (msg, reason, method = "log") {
+	if (reason === undefined) {
 		console[method]("%c[" + this.pluginName + "]%c " + msg, "color: #008888; font-weight: bold;", "");
 	} else {
 		console[method]("%c[" + this.pluginName + "]%c " + msg + " with reason: " + reason, "color: #008888; font-weight: bold;", "");
